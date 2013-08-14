@@ -59,6 +59,10 @@ module Shell
         @shell.hbase_security_admin
       end
 
+      def hbase_coprocessor
+        @shell.hbase_coprocessor
+      end
+
       #----------------------------------------------------------------------
 
       def formatter

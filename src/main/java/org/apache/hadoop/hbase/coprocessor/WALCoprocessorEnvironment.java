@@ -24,6 +24,6 @@ import org.apache.hadoop.hbase.CoprocessorEnvironment;
 import org.apache.hadoop.hbase.regionserver.wal.HLog;
 
 public interface WALCoprocessorEnvironment extends CoprocessorEnvironment {
-  /** @return reference to the region server services */
-  public HLog getWAL();
+	/** @return reference to the region server services */
+	public HLog getWAL();
 }

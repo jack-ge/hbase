@@ -56,6 +56,10 @@ module HBaseConstants
   SPLITS_FILE = 'SPLITS_FILE'
   SPLITALGO = 'SPLITALGO'
   NUMREGIONS = 'NUMREGIONS'
+  PARALLEL = "PARALLEL"
+  COLUMN_INTERPRETER="COLUMN_INTERPRETER"
+  KEY = "KEY"
+  SELECT = "SELECT"
 
   # Load constants from hbase java API
   def self.promote_constants(constants)
@@ -71,9 +75,15 @@ module HBaseConstants
   promote_constants(org.apache.hadoop.hbase.HTableDescriptor.constants)
 end
 
+#include all the filters
+module Filter
+  include_package "org.apache.hadoop.hbase.filter"
+end
+
 # Include classes definition
 require 'hbase/hbase'
 require 'hbase/admin'
 require 'hbase/table'
 require 'hbase/replication_admin'
 require 'hbase/security'
+require 'hbase/coprocessor'

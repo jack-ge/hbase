@@ -319,6 +319,7 @@ EOF
         cache = args["CACHE"] || 0
         versions = args["VERSIONS"] || 1
         timerange = args[TIMERANGE]
+        parallel = args["PARALLEL"] || false
         raw = args["RAW"] || false
 
         # Normalize column names
@@ -353,6 +354,7 @@ EOF
         scan.setCaching(cache) if cache > 0
         scan.setMaxVersions(versions) if versions > 1
         scan.setTimeRange(timerange[0], timerange[1]) if timerange
+        scan.setParallel(parallel)
         scan.setRaw(raw)
       else
         scan = org.apache.hadoop.hbase.client.Scan.new

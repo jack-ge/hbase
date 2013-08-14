@@ -23,6 +23,7 @@ include Java
 require 'hbase/admin'
 require 'hbase/table'
 require 'hbase/security'
+require 'hbase/coprocessor'
 
 module Hbase
   class Hbase
@@ -51,6 +52,10 @@ module Hbase
 
     def replication_admin(formatter)
       ::Hbase::RepAdmin.new(configuration, formatter)
+    end
+
+    def coprocessor(formatter)
+      ::Hbase::Coprocessor.new(configuration, formatter)
     end
 
     def security_admin(formatter)

@@ -38,267 +38,270 @@ import org.apache.hadoop.hbase.util.Pair;
  * that computes the aggregate function at a region level.
  */
 public class AggregateImplementation extends BaseEndpointCoprocessor implements
-    AggregateProtocol {
-  protected static Log log = LogFactory.getLog(AggregateImplementation.class);
+		AggregateProtocol {
+	protected static Log log = LogFactory.getLog(AggregateImplementation.class);
 
-  @Override
-  public ProtocolSignature getProtocolSignature(
-      String protocol, long version, int clientMethodsHashCode)
-  throws IOException {
-    if (AggregateProtocol.class.getName().equals(protocol)) {
-      return new ProtocolSignature(AggregateProtocol.VERSION, null);
-    }
-    throw new IOException("Unknown protocol: " + protocol);
-  }
+	@Override
+	public ProtocolSignature getProtocolSignature(String protocol,
+			long version, int clientMethodsHashCode) throws IOException {
+		if (AggregateProtocol.class.getName().equals(protocol)) {
+			return new ProtocolSignature(AggregateProtocol.VERSION, null);
+		}
+		throw new IOException("Unknown protocol: " + protocol);
+	}
 
-  @Override
-  public <T, S> T getMax(ColumnInterpreter<T, S> ci, Scan scan)
-      throws IOException {
-    T temp;
-    T max = null;
-    InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
-        .getRegion().getScanner(scan);
-    List<KeyValue> results = new ArrayList<KeyValue>();
-    byte[] colFamily = scan.getFamilies()[0];
-    NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
-    byte[] qualifier = null;
-    if (qualifiers != null && !qualifiers.isEmpty()) {
-      qualifier = qualifiers.pollFirst();
-    }
-    // qualifier can be null.
-    try {
-      boolean hasMoreRows = false;
-      do {
-        hasMoreRows = scanner.next(results);
-        for (KeyValue kv : results) {
-          temp = ci.getValue(colFamily, qualifier, kv);
-          max = (max == null || (temp != null && ci.compare(temp, max) > 0)) ? temp : max;
-        }
-        results.clear();
-      } while (hasMoreRows);
-    } finally {
-      scanner.close();
-    }
-    log.info("Maximum from this region is "
-        + ((RegionCoprocessorEnvironment) getEnvironment()).getRegion()
-            .getRegionNameAsString() + ": " + max);
-    return max;
-  }
+	@Override
+	public <T, S> T getMax(ColumnInterpreter<T, S> ci, Scan scan)
+			throws IOException {
+		T temp;
+		T max = null;
+		InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
+				.getRegion().getScanner(scan);
+		List<KeyValue> results = new ArrayList<KeyValue>();
+		byte[] colFamily = scan.getFamilies()[0];
+		NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
+		byte[] qualifier = null;
+		if (qualifiers != null && !qualifiers.isEmpty()) {
+			qualifier = qualifiers.pollFirst();
+		}
+		// qualifier can be null.
+		try {
+			boolean hasMoreRows = false;
+			do {
+				hasMoreRows = scanner.next(results);
+				for (KeyValue kv : results) {
+					temp = ci.getValue(colFamily, qualifier, kv);
+					max = (max == null || (temp != null && ci
+							.compare(temp, max) > 0)) ? temp : max;
+				}
+				results.clear();
+			} while (hasMoreRows);
+		} finally {
+			scanner.close();
+		}
+		log.info("Maximum from this region is "
+				+ ((RegionCoprocessorEnvironment) getEnvironment()).getRegion()
+						.getRegionNameAsString() + ": " + max);
+		return max;
+	}
 
-  @Override
-  public <T, S> T getMin(ColumnInterpreter<T, S> ci, Scan scan)
-      throws IOException {
-    T min = null;
-    T temp;
-    InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
-        .getRegion().getScanner(scan);
-    List<KeyValue> results = new ArrayList<KeyValue>();
-    byte[] colFamily = scan.getFamilies()[0];
-    NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
-    byte[] qualifier = null;
-    if (qualifiers != null && !qualifiers.isEmpty()) {
-      qualifier = qualifiers.pollFirst();
-    }
-    try {
-      boolean hasMoreRows = false;
-      do {
-        hasMoreRows = scanner.next(results);
-        for (KeyValue kv : results) {
-          temp = ci.getValue(colFamily, qualifier, kv);
-          min = (min == null || (temp != null && ci.compare(temp, min) < 0)) ? temp : min;
-        }
-        results.clear();
-      } while (hasMoreRows);
-    } finally {
-      scanner.close();
-    }
-    log.info("Minimum from this region is "
-        + ((RegionCoprocessorEnvironment) getEnvironment()).getRegion()
-            .getRegionNameAsString() + ": " + min);
-    return min;
-  }
+	@Override
+	public <T, S> T getMin(ColumnInterpreter<T, S> ci, Scan scan)
+			throws IOException {
+		T min = null;
+		T temp;
+		InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
+				.getRegion().getScanner(scan);
+		List<KeyValue> results = new ArrayList<KeyValue>();
+		byte[] colFamily = scan.getFamilies()[0];
+		NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
+		byte[] qualifier = null;
+		if (qualifiers != null && !qualifiers.isEmpty()) {
+			qualifier = qualifiers.pollFirst();
+		}
+		try {
+			boolean hasMoreRows = false;
+			do {
+				hasMoreRows = scanner.next(results);
+				for (KeyValue kv : results) {
+					temp = ci.getValue(colFamily, qualifier, kv);
+					min = (min == null || (temp != null && ci
+							.compare(temp, min) < 0)) ? temp : min;
+				}
+				results.clear();
+			} while (hasMoreRows);
+		} finally {
+			scanner.close();
+		}
+		log.info("Minimum from this region is "
+				+ ((RegionCoprocessorEnvironment) getEnvironment()).getRegion()
+						.getRegionNameAsString() + ": " + min);
+		return min;
+	}
 
-  @Override
-  public <T, S> S getSum(ColumnInterpreter<T, S> ci, Scan scan)
-      throws IOException {
-    long sum = 0l;
-    S sumVal = null;
-    T temp;
-    InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
-        .getRegion().getScanner(scan);
-    byte[] colFamily = scan.getFamilies()[0];
-    NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
-    byte[] qualifier = null;
-    if (qualifiers != null && !qualifiers.isEmpty()) {
-      qualifier = qualifiers.pollFirst();
-    }
-    List<KeyValue> results = new ArrayList<KeyValue>();
-    try {
-      boolean hasMoreRows = false;
-      do {
-        hasMoreRows = scanner.next(results);
-        for (KeyValue kv : results) {
-          temp = ci.getValue(colFamily, qualifier, kv);
-          if (temp != null)
-            sumVal = ci.add(sumVal, ci.castToReturnType(temp));
-        }
-        results.clear();
-      } while (hasMoreRows);
-    } finally {
-      scanner.close();
-    }
-    log.debug("Sum from this region is "
-        + ((RegionCoprocessorEnvironment) getEnvironment()).getRegion()
-            .getRegionNameAsString() + ": " + sum);
-    return sumVal;
-  }
+	@Override
+	public <T, S> S getSum(ColumnInterpreter<T, S> ci, Scan scan)
+			throws IOException {
+		long sum = 0l;
+		S sumVal = null;
+		T temp;
+		InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
+				.getRegion().getScanner(scan);
+		byte[] colFamily = scan.getFamilies()[0];
+		NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
+		byte[] qualifier = null;
+		if (qualifiers != null && !qualifiers.isEmpty()) {
+			qualifier = qualifiers.pollFirst();
+		}
+		List<KeyValue> results = new ArrayList<KeyValue>();
+		try {
+			boolean hasMoreRows = false;
+			do {
+				hasMoreRows = scanner.next(results);
+				for (KeyValue kv : results) {
+					temp = ci.getValue(colFamily, qualifier, kv);
+					if (temp != null)
+						sumVal = ci.add(sumVal, ci.castToReturnType(temp));
+				}
+				results.clear();
+			} while (hasMoreRows);
+		} finally {
+			scanner.close();
+		}
+		log.debug("Sum from this region is "
+				+ ((RegionCoprocessorEnvironment) getEnvironment()).getRegion()
+						.getRegionNameAsString() + ": " + sum);
+		return sumVal;
+	}
 
-  @Override
-  public <T, S> long getRowNum(ColumnInterpreter<T, S> ci, Scan scan)
-      throws IOException {
-    long counter = 0l;
-    List<KeyValue> results = new ArrayList<KeyValue>();
-    byte[] colFamily = scan.getFamilies()[0];
-    NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
-    byte[] qualifier = null;
-    if (qualifiers != null && !qualifiers.isEmpty()) {
-      qualifier = qualifiers.pollFirst();
-    }
-    if (scan.getFilter() == null && qualifier == null)
-      scan.setFilter(new FirstKeyOnlyFilter());
-    InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
-        .getRegion().getScanner(scan);
-    try {
-      boolean hasMoreRows = false;
-      do {
-        hasMoreRows = scanner.next(results);
-        if (results.size() > 0) {
-          counter++;
-        }
-        results.clear();
-      } while (hasMoreRows);
-    } finally {
-      scanner.close();
-    }
-    log.info("Row counter from this region is "
-        + ((RegionCoprocessorEnvironment) getEnvironment()).getRegion()
-            .getRegionNameAsString() + ": " + counter);
-    return counter;
-  }
+	@Override
+	public <T, S> long getRowNum(ColumnInterpreter<T, S> ci, Scan scan)
+			throws IOException {
+		long counter = 0l;
+		List<KeyValue> results = new ArrayList<KeyValue>();
+		byte[] colFamily = scan.getFamilies()[0];
+		NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
+		byte[] qualifier = null;
+		if (qualifiers != null && !qualifiers.isEmpty()) {
+			qualifier = qualifiers.pollFirst();
+		}
+		if (scan.getFilter() == null && qualifier == null)
+			scan.setFilter(new FirstKeyOnlyFilter());
+		InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
+				.getRegion().getScanner(scan);
+		try {
+			boolean hasMoreRows = false;
+			do {
+				hasMoreRows = scanner.next(results);
+				if (results.size() > 0) {
+					counter++;
+				}
+				results.clear();
+			} while (hasMoreRows);
+		} finally {
+			scanner.close();
+		}
+		log.info("Row counter from this region is "
+				+ ((RegionCoprocessorEnvironment) getEnvironment()).getRegion()
+						.getRegionNameAsString() + ": " + counter);
+		return counter;
+	}
 
-  @Override
-  public <T, S> Pair<S, Long> getAvg(ColumnInterpreter<T, S> ci, Scan scan)
-      throws IOException {
-    S sumVal = null;
-    Long rowCountVal = 0l;
-    InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
-        .getRegion().getScanner(scan);
-    byte[] colFamily = scan.getFamilies()[0];
-    NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
-    byte[] qualifier = null;
-    if (qualifiers != null && !qualifiers.isEmpty()) {
-      qualifier = qualifiers.pollFirst();
-    }
-    List<KeyValue> results = new ArrayList<KeyValue>();
-    boolean hasMoreRows = false;
-    try {
-      do {
-        results.clear();
-        hasMoreRows = scanner.next(results);
-        for (KeyValue kv : results) {
-          sumVal = ci.add(sumVal, ci.castToReturnType(ci.getValue(colFamily,
-              qualifier, kv)));
-        }
-        rowCountVal++;
-      } while (hasMoreRows);
-    } finally {
-      scanner.close();
-    }
-    Pair<S, Long> pair = new Pair<S, Long>(sumVal, rowCountVal);
-    return pair;
-  }
+	@Override
+	public <T, S> Pair<S, Long> getAvg(ColumnInterpreter<T, S> ci, Scan scan)
+			throws IOException {
+		S sumVal = null;
+		Long rowCountVal = 0l;
+		InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
+				.getRegion().getScanner(scan);
+		byte[] colFamily = scan.getFamilies()[0];
+		NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
+		byte[] qualifier = null;
+		if (qualifiers != null && !qualifiers.isEmpty()) {
+			qualifier = qualifiers.pollFirst();
+		}
+		List<KeyValue> results = new ArrayList<KeyValue>();
+		boolean hasMoreRows = false;
+		try {
+			do {
+				results.clear();
+				hasMoreRows = scanner.next(results);
+				for (KeyValue kv : results) {
+					sumVal = ci.add(sumVal, ci.castToReturnType(ci.getValue(
+							colFamily, qualifier, kv)));
+				}
+				rowCountVal++;
+			} while (hasMoreRows);
+		} finally {
+			scanner.close();
+		}
+		Pair<S, Long> pair = new Pair<S, Long>(sumVal, rowCountVal);
+		return pair;
+	}
 
-  @Override
-  public <T, S> Pair<List<S>, Long> getStd(ColumnInterpreter<T, S> ci, Scan scan)
-      throws IOException {
-    S sumVal = null, sumSqVal = null, tempVal = null;
-    long rowCountVal = 0l;
-    InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
-        .getRegion().getScanner(scan);
-    byte[] colFamily = scan.getFamilies()[0];
-    NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
-    byte[] qualifier = null;
-    if (qualifiers != null && !qualifiers.isEmpty()) {
-      qualifier = qualifiers.pollFirst();
-    }
-    List<KeyValue> results = new ArrayList<KeyValue>();
+	@Override
+	public <T, S> Pair<List<S>, Long> getStd(ColumnInterpreter<T, S> ci,
+			Scan scan) throws IOException {
+		S sumVal = null, sumSqVal = null, tempVal = null;
+		long rowCountVal = 0l;
+		InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
+				.getRegion().getScanner(scan);
+		byte[] colFamily = scan.getFamilies()[0];
+		NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
+		byte[] qualifier = null;
+		if (qualifiers != null && !qualifiers.isEmpty()) {
+			qualifier = qualifiers.pollFirst();
+		}
+		List<KeyValue> results = new ArrayList<KeyValue>();
 
-    boolean hasMoreRows = false;
-    try {
-      do {
-        tempVal = null;
-        hasMoreRows = scanner.next(results);
-        for (KeyValue kv : results) {
-          tempVal = ci.add(tempVal, ci.castToReturnType(ci.getValue(colFamily,
-              qualifier, kv)));
-        }
-        results.clear();
-        sumVal = ci.add(sumVal, tempVal);
-        sumSqVal = ci.add(sumSqVal, ci.multiply(tempVal, tempVal));
-        rowCountVal++;
-      } while (hasMoreRows);
-    } finally {
-      scanner.close();
-    }
-    List<S> l = new ArrayList<S>();
-    l.add(sumVal);
-    l.add(sumSqVal);
-    Pair<List<S>, Long> p = new Pair<List<S>, Long>(l, rowCountVal);
-    return p;
-  }
+		boolean hasMoreRows = false;
+		try {
+			do {
+				tempVal = null;
+				hasMoreRows = scanner.next(results);
+				for (KeyValue kv : results) {
+					tempVal = ci.add(tempVal, ci.castToReturnType(ci.getValue(
+							colFamily, qualifier, kv)));
+				}
+				results.clear();
+				sumVal = ci.add(sumVal, tempVal);
+				sumSqVal = ci.add(sumSqVal, ci.multiply(tempVal, tempVal));
+				rowCountVal++;
+			} while (hasMoreRows);
+		} finally {
+			scanner.close();
+		}
+		List<S> l = new ArrayList<S>();
+		l.add(sumVal);
+		l.add(sumSqVal);
+		Pair<List<S>, Long> p = new Pair<List<S>, Long>(l, rowCountVal);
+		return p;
+	}
 
-  @Override
-  public <T, S> List<S> getMedian(ColumnInterpreter<T, S> ci, Scan scan)
-  throws IOException {
-    S sumVal = null, sumWeights = null, tempVal = null, tempWeight = null;
+	@Override
+	public <T, S> List<S> getMedian(ColumnInterpreter<T, S> ci, Scan scan)
+			throws IOException {
+		S sumVal = null, sumWeights = null, tempVal = null, tempWeight = null;
 
-    InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
-    .getRegion().getScanner(scan);
-    byte[] colFamily = scan.getFamilies()[0];
-    NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
-    byte[] valQualifier = null, weightQualifier = null;
-    if (qualifiers != null && !qualifiers.isEmpty()) {
-      valQualifier = qualifiers.pollFirst();
-      // if weighted median is requested, get qualifier for the weight column
-      weightQualifier = qualifiers.pollLast();
-    }
-    List<KeyValue> results = new ArrayList<KeyValue>();
+		InternalScanner scanner = ((RegionCoprocessorEnvironment) getEnvironment())
+				.getRegion().getScanner(scan);
+		byte[] colFamily = scan.getFamilies()[0];
+		NavigableSet<byte[]> qualifiers = scan.getFamilyMap().get(colFamily);
+		byte[] valQualifier = null, weightQualifier = null;
+		if (qualifiers != null && !qualifiers.isEmpty()) {
+			valQualifier = qualifiers.pollFirst();
+			// if weighted median is requested, get qualifier for the weight
+			// column
+			weightQualifier = qualifiers.pollLast();
+		}
+		List<KeyValue> results = new ArrayList<KeyValue>();
 
-    boolean hasMoreRows = false;
-    try {
-      do {
-        tempVal = null;
-        tempWeight = null;
-        hasMoreRows = scanner.next(results);
-        for (KeyValue kv : results) {
-          tempVal = ci.add(tempVal, ci.castToReturnType(ci.getValue(colFamily,
-              valQualifier, kv)));
-          if (weightQualifier != null) {
-            tempWeight = ci.add(tempWeight,
-                ci.castToReturnType(ci.getValue(colFamily, weightQualifier, kv)));
-          }
-        }
-        results.clear();
-        sumVal = ci.add(sumVal, tempVal);
-        sumWeights = ci.add(sumWeights, tempWeight);
-      } while (hasMoreRows);
-    } finally {
-      scanner.close();
-    }
-    List<S> l = new ArrayList<S>();
-    l.add(sumVal);
-    l.add(sumWeights == null ? ci.castToReturnType(ci.getMinValue()) : sumWeights);
-    return l;
-  }
-  
+		boolean hasMoreRows = false;
+		try {
+			do {
+				tempVal = null;
+				tempWeight = null;
+				hasMoreRows = scanner.next(results);
+				for (KeyValue kv : results) {
+					tempVal = ci.add(tempVal, ci.castToReturnType(ci.getValue(
+							colFamily, valQualifier, kv)));
+					if (weightQualifier != null) {
+						tempWeight = ci.add(tempWeight, ci.castToReturnType(ci
+								.getValue(colFamily, weightQualifier, kv)));
+					}
+				}
+				results.clear();
+				sumVal = ci.add(sumVal, tempVal);
+				sumWeights = ci.add(sumWeights, tempWeight);
+			} while (hasMoreRows);
+		} finally {
+			scanner.close();
+		}
+		List<S> l = new ArrayList<S>();
+		l.add(sumVal);
+		l.add(sumWeights == null ? ci.castToReturnType(ci.getMinValue())
+				: sumWeights);
+		return l;
+	}
+
 }

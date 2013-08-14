@@ -91,6 +91,10 @@ module Shell
       @hbase_security_admin ||= hbase.security_admin(formatter)
     end
 
+    def hbase_coprocessor
+      @hbase_coprocessor ||= hbase.coprocessor(formatter)
+    end
+
     def export_commands(where)
       ::Shell.commands.keys.each do |cmd|
         # here where is the IRB namespace
@@ -325,6 +329,16 @@ Shell.load_command_group(
     grant
     revoke
     user_permission
+  ]
+)
+
+Shell.load_command_group(
+  'coprocessor',
+  :full_name => 'CLUSTER COPROCESSOR TOOLS',
+  :comment => "In order to use these tools, hbase.coprocessor.region.classes must be set",
+  :commands => %w[
+    aggregate
+    groupby
   ]
 )
 
