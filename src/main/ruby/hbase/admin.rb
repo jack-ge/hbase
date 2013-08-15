@@ -216,29 +216,7 @@ module Hbase
           num_regions = arg[NUMREGIONS]
           split_algo = org.apache.hadoop.hbase.util.RegionSplitter.newSplitAlgoInstance(@conf, arg[SPLITALGO])
           splits = split_algo.split(JInteger.valueOf(num_regions))
-        elsif (method = arg.delete(METHOD))
-            # (2) table_att modification
-            raise(ArgumentError, "table_att is currently the only supported method") unless method == 'table_att'
-            raise(ArgumentError, "NUMREGIONS & SPLITALGO must both be specified") unless arg.has_key?(NUMREGIONS) == arg.has_key?(split_algo)
-            htd.setMaxFileSize(JLong.valueOf(arg[MAX_FILESIZE])) if arg[MAX_FILESIZE]
-            htd.setReadOnly(JBoolean.valueOf(arg[READONLY])) if arg[READONLY]
-            htd.setMemStoreFlushSize(JLong.valueOf(arg[MEMSTORE_FLUSHSIZE])) if arg[MEMSTORE_FLUSHSIZE]
-            htd.setDeferredLogFlush(JBoolean.valueOf(arg[DEFERRED_LOG_FLUSH])) if arg[DEFERRED_LOG_FLUSH]
-            htd.setValue(COMPRESSION_COMPACT, arg[COMPRESSION_COMPACT]) if arg[COMPRESSION_COMPACT]
-            if arg[NUMREGIONS]
-              raise(ArgumentError, "Number of regions must be greater than 1") unless arg[NUMREGIONS] > 1
-              num_regions = arg[NUMREGIONS]
-              split_algo = RegionSplitter.newSplitAlgoInstance(@conf, arg[SPLITALGO])
-              splits = split_algo.split(JInteger.valueOf(num_regions))
-            end
-            if arg[CONFIG]
-              raise(ArgumentError, "#{CONFIG} must be a Hash type") unless arg.kind_of?(Hash)
-              for k,v in arg[CONFIG]
-                v = v.to_s unless v.nil?
-                htd.setValue(k, v)
-              end
-            end
-          else
+        else
 	  # (3) column family spec
           # Add column to the table
           descriptor = hcd(arg, htd)
