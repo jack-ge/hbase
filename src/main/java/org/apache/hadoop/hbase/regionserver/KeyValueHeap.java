@@ -177,7 +177,7 @@ public class KeyValueHeap extends NonLazyKeyValueScanner
     return next(result, -1, metric);
   }
 
-  private static class KVScannerComparator implements Comparator<KeyValueScanner> {
+  static class KVScannerComparator implements Comparator<KeyValueScanner> {
     private KVComparator kvComparator;
     /**
      * Constructor

@@ -160,6 +160,11 @@ public class HTableDescriptor implements WritableComparable<HTableDescriptor> {
    * the contents are flushed to the store files
    */
   public static final long DEFAULT_MEMSTORE_FLUSH_SIZE = 1024*1024*128L;
+  
+  private static final String ROLLING_SCAN = "ROLLING_SCAN";
+  private static final ImmutableBytesWritable ROLLING_SCAN_KEY = new ImmutableBytesWritable(
+			Bytes.toBytes(ROLLING_SCAN));
+  private static final boolean DEFAULT_ROLLING_SCAN = false;
 
   private volatile Boolean meta = null;
   private volatile Boolean root = null;
@@ -513,6 +518,14 @@ public class HTableDescriptor implements WritableComparable<HTableDescriptor> {
   public void setReadOnly(final boolean readOnly) {
     setValue(READONLY_KEY, readOnly? TRUE: FALSE);
   }
+  
+  public boolean isRollingScan() {
+		return isSomething(ROLLING_SCAN_KEY, DEFAULT_ROLLING_SCAN);
+	}
+
+	public void setRollingScan(boolean rollingScan) {
+		setValue(ROLLING_SCAN_KEY, rollingScan ? TRUE : FALSE);
+	}
 
   /**
    * Check if deferred log edits are enabled on the table.  
