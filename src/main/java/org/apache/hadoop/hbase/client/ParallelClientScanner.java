@@ -37,7 +37,7 @@ public class ParallelClientScanner extends AbstractClientScanner {
 			List<byte[]> splitKeys) throws IOException {
 		this.table = table;
 		this.resultQueueSize = table.getConfiguration().getInt(
-				"hbase.parallel.scanner.queue.size", SCANNER_WAIT_TIME);
+				"hbase.parallel.scanner.queue.size", 1000);
 
 		this.threadCount = (table.getConfiguration().getInt(
 				"hbase.parallel.scanner.thread.count", 10) - 1);
@@ -284,7 +284,7 @@ public class ParallelClientScanner extends AbstractClientScanner {
 				while (r != null) {
 					boolean added = false;
 					while (!added) {
-						added = this.results.offer(r, 1000L,
+						added = this.results.offer(r, SCANNER_WAIT_TIME,
 								TimeUnit.MILLISECONDS);
 					}
 					synchronized (this.empty) {

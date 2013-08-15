@@ -463,6 +463,10 @@ public class HFileOutputFormat extends FileOutputFormat<ImmutableBytesWritable, 
     Collection<HColumnDescriptor> families = tableDescriptor.getFamilies();
     int i = 0;
     for (HColumnDescriptor familyDescriptor : families) {
+    	Short replica = familyDescriptor.getReplication();
+		if (replica == null) {
+			continue;
+		}
       if (i++ > 0) {
         compressionConfigValue.append('&');
       }
@@ -491,6 +495,10 @@ public class HFileOutputFormat extends FileOutputFormat<ImmutableBytesWritable, 
     Collection<HColumnDescriptor> families = tableDescriptor.getFamilies();
     int i = 0;
     for (HColumnDescriptor familyDescriptor : families) {
+    	Short replica = familyDescriptor.getReplication();
+		if (replica == null) {
+			continue;
+		}
       if (i++ > 0) {
         bloomTypeConfigValue.append('&');
       }

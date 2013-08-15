@@ -315,6 +315,7 @@ public class HFile {
     protected final CacheConfig cacheConf;
     protected FileSystem fs;
     protected Path path;
+	protected Short replication;
     protected FSDataOutputStream ostream;
     protected int blockSize = HColumnDescriptor.DEFAULT_BLOCKSIZE;
     protected Compression.Algorithm compression =
@@ -328,6 +329,11 @@ public class HFile {
       this.conf = conf;
       this.cacheConf = cacheConf;
     }
+    
+    public WriterFactory withReplication(Short replication) {
+		this.replication = replication;
+		return this;
+	}
 
     public WriterFactory withPath(FileSystem fs, Path path) {
       Preconditions.checkNotNull(fs);
@@ -389,7 +395,7 @@ public class HFile {
             "filesystem/path or path");
       }
       if (path != null) {
-        ostream = AbstractHFileWriter.createOutputStream(conf, fs, path);
+        ostream = AbstractHFileWriter.createOutputStream(conf, fs, path, this.replication);
       }
       return createWriter(fs, path, ostream, blockSize,
           compression, encoder, comparator, checksumType, bytesPerChecksum);

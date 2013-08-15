@@ -265,9 +265,14 @@ public abstract class AbstractHFileWriter extends SchemaConfigured
 
   /** A helper method to create HFile output streams in constructors */
   protected static FSDataOutputStream createOutputStream(Configuration conf,
-      FileSystem fs, Path path) throws IOException {
+      FileSystem fs, Path path, Short replication) throws IOException {
     FsPermission perms = FSUtils.getFilePermissions(fs, conf,
         HConstants.DATA_FILE_UMASK_KEY);
-    return FSUtils.create(fs, path, perms);
+    return FSUtils.create(fs, path, perms, replication);
   }
+  
+  protected static FSDataOutputStream createOutputStream(Configuration conf,
+			FileSystem fs, Path path) throws IOException {
+		return createOutputStream(conf, fs, path, null);
+	}
 }

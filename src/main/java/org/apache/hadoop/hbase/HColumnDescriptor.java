@@ -57,6 +57,7 @@ public class HColumnDescriptor implements WritableComparable<HColumnDescriptor> 
   // Version 8 -- reintroduction of bloom filters, changed from boolean to enum
   // Version 9 -- add data block encoding
   private static final byte COLUMN_DESCRIPTOR_VERSION = (byte) 9;
+  public static final String REPLICATION = "REPLICATION";
 
   // These constants are used as FileInfo keys
   public static final String COMPRESSION = "COMPRESSION";
@@ -77,6 +78,8 @@ public class HColumnDescriptor implements WritableComparable<HColumnDescriptor> 
    * indices (more memory consumption).
    */
   public static final String BLOCKSIZE = "BLOCKSIZE";
+  public static final String BLOB_STORE = "LOBSTORE";
+
 
   public static final String LENGTH = "LENGTH";
   public static final String TTL = "TTL";
@@ -556,6 +559,35 @@ public class HColumnDescriptor implements WritableComparable<HColumnDescriptor> 
     this.blocksize = null;
     return this;
   }
+  
+  public boolean isLobStoreEnabled() {
+		String value = getValue(BLOB_STORE);
+		if (value != null) {
+			return Boolean.valueOf(value).booleanValue();
+		}
+		return false;
+	}
+
+	public HColumnDescriptor setLobStoreEnabled(boolean enable) {
+		return setValue(BLOB_STORE, Boolean.toString(enable));
+	}
+  
+	public void setReplication(short replica) {
+		String val = Short.toString(replica);
+		setValue("REPLICATION", val);
+	}
+
+	public Short getReplication() {
+		String n = getValue("REPLICATION");
+		if (n == null) {
+			return null;
+		}
+		try {
+			return Short.valueOf(Short.parseShort(n));
+		} catch (NumberFormatException e) {
+		}
+		return null;
+	}
 
   /**
    * @return Compression type setting.
@@ -727,7 +759,7 @@ public class HColumnDescriptor implements WritableComparable<HColumnDescriptor> 
       return Boolean.valueOf(value).booleanValue();
     return DEFAULT_BLOCKCACHE;
   }
-
+  
   /**
    * @param blockCacheEnabled True if MapFile blocks should be cached.
    * @return this (for chained invocation)

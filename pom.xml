@@ -1138,7 +1138,12 @@
         * javax.servlet:jsp-api in favour of org.mortbay.jetty:jsp-api-2.1
         * javax.xml.stream:stax-api in favour of stax:stax-api
     -->
-
+	<dependency>
+		<groupId>quartz</groupId>
+		<artifactId>quartz</artifactId>
+		<version>1.5.2</version>
+	</dependency>
+            
 
     <!-- General dependencies -->
     <dependency>

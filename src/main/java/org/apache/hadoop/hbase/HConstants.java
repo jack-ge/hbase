@@ -705,6 +705,12 @@ public final class HConstants {
   public static final String HEALTH_FAILURE_THRESHOLD =
       "hbase.node.health.failure.threshold";
   public static final int DEFAULT_HEALTH_FAILURE_THRESHOLD = 3;
+  public static final String BLOB_STORE = "blobstore";
+  public static final String BLOCKING_STORE_FILES = "hbase.hstore.blockingStoreFiles";
+  public static final String STORE_COMPACTION_MIN = "hbase.hstore.compaction.min";
+  public static final String STORE_COMPACTION_MAX = "hbase.hstore.compaction.max";
+  public static final String HBASE_REGION_MAJOR_COMPACTION_CRON = "hbase.hregion.majorcompaction.cron";
+
 
   private HConstants() {
     // Can't be instantiated with this ctor.

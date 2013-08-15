@@ -86,7 +86,7 @@ public class Scan extends OperationWithAttributes implements Writable {
 	private static final String ONDEMAND_ATTR = "_ondemand_";
 	private static final String ISOLATION_LEVEL = "_isolationlevel_";
 
-	private static final byte SCAN_VERSION = (byte) 3;
+	private static final byte SCAN_VERSION = (byte) 4;
 	private byte[] startRow = HConstants.EMPTY_START_ROW;
 	private byte[] stopRow = HConstants.EMPTY_END_ROW;
 	private int maxVersions = 1;
@@ -114,6 +114,9 @@ public class Scan extends OperationWithAttributes implements Writable {
 	private TimeRange tr = new TimeRange();
 	private Map<byte[], NavigableSet<byte[]>> familyMap = new TreeMap<byte[], NavigableSet<byte[]>>(
 			Bytes.BYTES_COMPARATOR);
+	
+	private boolean resolveReference = true;
+
 
 	/**
 	 * Create a Scan operation across all rows.
@@ -167,6 +170,7 @@ public class Scan extends OperationWithAttributes implements Writable {
 		batch = scan.getBatch();
 		caching = scan.getCaching();
 		this.parallel = scan.isParallel();
+		this.resolveReference = scan.isResolveReference();
 		cacheBlocks = scan.getCacheBlocks();
 		filter = scan.getFilter(); // clone?
 		TimeRange ctr = scan.getTimeRange();
@@ -289,6 +293,14 @@ public class Scan extends OperationWithAttributes implements Writable {
 			// Will never happen
 		}
 		return this;
+	}
+	
+	public void setResolveReference(boolean resolve) {
+		this.resolveReference = resolve;
+	}
+
+	public boolean isResolveReference() {
+		return this.resolveReference;
 	}
 
 	/**
@@ -586,6 +598,7 @@ public class Scan extends OperationWithAttributes implements Writable {
 		map.put("batch", this.batch);
 		map.put("caching", this.caching);
 		map.put("parallel", Boolean.valueOf(this.parallel));
+		map.put("resolveReference", Boolean.valueOf(this.resolveReference));
 		map.put("cacheBlocks", this.cacheBlocks);
 		List<Long> timeRange = new ArrayList<Long>();
 		timeRange.add(this.tr.getMin());
@@ -665,6 +678,9 @@ public class Scan extends OperationWithAttributes implements Writable {
 		if (version > 2) {
 			this.parallel = in.readBoolean();
 		}
+		
+		if (version > 3)
+			this.resolveReference = in.readBoolean();
 	}
 
 	public void write(final DataOutput out) throws IOException {
@@ -700,6 +716,7 @@ public class Scan extends OperationWithAttributes implements Writable {
 		}
 		writeAttributes(out);
 		out.writeBoolean(this.parallel);
+		out.writeBoolean(this.resolveReference);
 	}
 
 	/**

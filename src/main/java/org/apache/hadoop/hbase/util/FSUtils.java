@@ -158,6 +158,26 @@ public abstract class FSUtils {
     LOG.debug("Creating file=" + path + " with permission=" + perm);
     return HBaseFileSystem.createPathWithPermsOnFileSystem(fs, path, perm, overwrite);
   }
+  
+  public static FSDataOutputStream create(FileSystem fs, Path path,
+			FsPermission perm, Short replication) throws IOException {
+		return create(fs, path, perm, true, replication);
+	}
+  
+  private static FSDataOutputStream create(FileSystem fs, Path path,
+			FsPermission perm, boolean overwrite, Short replication)
+			throws IOException {
+		LOG.debug("Creating file:" + path + "with permission:" + perm);
+
+		return fs.create(
+				path,
+				perm,
+				overwrite,
+				fs.getConf().getInt("io.file.buffer.size", 4096),
+				(replication == null) || (replication.shortValue() <= 0) ? fs
+						.getDefaultReplication() : replication.shortValue(), fs
+						.getDefaultBlockSize(), null);
+	}
 
   /**
    * Get the file permissions specified in the configuration, if they are

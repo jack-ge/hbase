@@ -138,7 +138,7 @@ public class MemStore implements HeapSize {
    * Snapshot must be cleared by call to {@link #clearSnapshot(SortedSet<KeyValue>)}
    * To get the snapshot made by this method, use {@link #getSnapshot()}
    */
-  void snapshot() {
+  public void snapshot() {
     this.lock.writeLock().lock();
     try {
       // If snapshot currently has entries, then flusher failed or didn't call
@@ -173,7 +173,7 @@ public class MemStore implements HeapSize {
    * @see {@link #snapshot()}
    * @see {@link #clearSnapshot(SortedSet<KeyValue>)}
    */
-  KeyValueSkipListSet getSnapshot() {
+  public KeyValueSkipListSet getSnapshot() {
     return this.snapshot;
   }
 
@@ -183,7 +183,7 @@ public class MemStore implements HeapSize {
    * @throws UnexpectedException
    * @see {@link #snapshot()}
    */
-  void clearSnapshot(final SortedSet<KeyValue> ss)
+  public void clearSnapshot(final SortedSet<KeyValue> ss)
   throws UnexpectedException {
     this.lock.writeLock().lock();
     try {
@@ -207,7 +207,7 @@ public class MemStore implements HeapSize {
    * @param kv
    * @return approximate size of the passed key and value.
    */
-  long add(final KeyValue kv) {
+  public long add(final KeyValue kv) {
     this.lock.readLock().lock();
     try {
       KeyValue toAdd = maybeCloneWithAllocator(kv);

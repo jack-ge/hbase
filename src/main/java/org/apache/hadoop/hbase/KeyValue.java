@@ -173,7 +173,7 @@ public class KeyValue implements Writable, HeapSize {
 
 		Delete((byte) 8), DeleteColumn((byte) 12), DeleteFamily((byte) 14),
 
-		Reference((byte)-45),
+		Reference((byte) -45),
 
 		// Maximum is used when searching; you look from maximum on down.
 		Maximum((byte) 255);
@@ -1193,6 +1193,11 @@ public class KeyValue implements Writable, HeapSize {
 	 */
 	byte getType(final int keylength) {
 		return this.bytes[this.offset + keylength - 1 + ROW_OFFSET];
+	}
+
+	public void setType(Type type) {
+		this.bytes[(this.offset + getKeyLength() - 1 + ROW_OFFSET)] = type
+				.getCode();
 	}
 
 	/**
