@@ -74,12 +74,12 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.HConstants.OperationStatusCode;
 import org.apache.hadoop.hbase.HDFSBlocksDistribution;
-import org.apache.hadoop.hbase.HealthCheckChore;
 import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.HServerAddress;
 import org.apache.hadoop.hbase.HServerInfo;
 import org.apache.hadoop.hbase.HServerLoad;
 import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.HealthCheckChore;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.MasterAddressTracker;
 import org.apache.hadoop.hbase.NotServingRegionException;
@@ -91,6 +91,7 @@ import org.apache.hadoop.hbase.TableDescriptors;
 import org.apache.hadoop.hbase.UnknownRowLockException;
 import org.apache.hadoop.hbase.UnknownScannerException;
 import org.apache.hadoop.hbase.YouAreDeadException;
+import org.apache.hadoop.hbase.blobStore.BlobStoreManager;
 import org.apache.hadoop.hbase.catalog.CatalogTracker;
 import org.apache.hadoop.hbase.catalog.MetaEditor;
 import org.apache.hadoop.hbase.catalog.MetaReader;
@@ -115,7 +116,6 @@ import org.apache.hadoop.hbase.client.coprocessor.ExecResult;
 import org.apache.hadoop.hbase.coprocessor.CoprocessorHost;
 import org.apache.hadoop.hbase.coprocessor.batch.BatchExec;
 import org.apache.hadoop.hbase.coprocessor.batch.BatchExecCall;
-import org.apache.hadoop.hbase.coprocessor.batch.BatchExecCall.ServerCallback;
 import org.apache.hadoop.hbase.coprocessor.batch.BatchExecResult;
 import org.apache.hadoop.hbase.executor.EventHandler.EventType;
 import org.apache.hadoop.hbase.executor.ExecutorService;
@@ -185,7 +185,6 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.zookeeper.KeeperException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.joda.time.field.MillisDurationField;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -1179,6 +1178,10 @@ public class HRegionServer implements HRegionInterface, HBaseRPCErrorHandler,
 			this.rootDir = new Path(this.conf.get(HConstants.HBASE_DIR));
 			this.tableDescriptors = new FSTableDescriptors(this.fs,
 					this.rootDir, true);
+			
+			Path blobstoreDir = new Path(this.rootDir, "blobstore");
+			BlobStoreManager.getInstance().init(this.fs, blobstoreDir);
+			
 			this.hlog = setupWALAndReplication();
 			// Init in here rather than in constructor after thread name has
 			// been set

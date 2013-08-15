@@ -81,7 +81,7 @@ public class BlobStoreManager {
 		}
 		List<BlobStoreKey> results = new ArrayList<BlobStoreKey>();
 		while (iter.hasNext()) {
-			BlobStoreKey key = (BlobStoreKey) iter.next();
+			BlobStoreKey key = iter.next();
 			if ((null != key) && (key.getTableName().equals(tableName))) {
 				results.add(key);
 			}
@@ -97,7 +97,7 @@ public class BlobStoreManager {
 		}
 		List<BlobStoreKey> results = new ArrayList<BlobStoreKey>();
 		while (iter.hasNext()) {
-			BlobStoreKey key = (BlobStoreKey) iter.next();
+			BlobStoreKey key =  iter.next();
 			results.add(key);
 		}
 		return results;
@@ -146,7 +146,7 @@ public class BlobStoreManager {
 			}
 			this.stores.put(key, blobStore);
 		}
-		return (BlobStore) this.stores.get(key);
+		return this.stores.get(key);
 	}
 
 	private void cleanBlobStoresIfNecessary() {

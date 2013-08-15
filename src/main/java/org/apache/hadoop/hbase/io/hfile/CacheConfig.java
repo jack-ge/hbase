@@ -116,7 +116,7 @@ public class CacheConfig {
 	 *            column family configuration
 	 */
 	public CacheConfig(Configuration conf, HColumnDescriptor family) {
-		this(CacheConfig.instantiateBlockCache(conf), family
+		this(CacheConfig.instantiateBlockCache(conf),CacheConfig.instantiateBlobFileCache(conf), family
 				.isBlockCacheEnabled(), family.isInMemory(),
 		// For the following flags we enable them regardless of per-schema
 		// settings
@@ -144,7 +144,7 @@ public class CacheConfig {
 	 *            hbase configuration
 	 */
 	public CacheConfig(Configuration conf) {
-		this(CacheConfig.instantiateBlockCache(conf),instantiateBlobFileCache(conf),
+		this(CacheConfig.instantiateBlockCache(conf),CacheConfig.instantiateBlobFileCache(conf),
 				DEFAULT_CACHE_DATA_ON_READ, DEFAULT_IN_MEMORY, // This is a
 																// family-level
 																// setting so

@@ -205,6 +205,8 @@ public class HColumnDescriptor implements WritableComparable<HColumnDescriptor> 
           String.valueOf(DEFAULT_CACHE_BLOOMS_ON_WRITE));
       DEFAULT_VALUES.put(EVICT_BLOCKS_ON_CLOSE,
           String.valueOf(DEFAULT_EVICT_BLOCKS_ON_CLOSE));
+	 DEFAULT_VALUES.put(REPLICATION, String.valueOf(0));
+
   }
 
   // Column family name
@@ -574,11 +576,11 @@ public class HColumnDescriptor implements WritableComparable<HColumnDescriptor> 
   
 	public void setReplication(short replica) {
 		String val = Short.toString(replica);
-		setValue("REPLICATION", val);
+		setValue(REPLICATION, val);
 	}
 
 	public Short getReplication() {
-		String n = getValue("REPLICATION");
+		String n = getValue(REPLICATION);
 		if (n == null) {
 			return null;
 		}
